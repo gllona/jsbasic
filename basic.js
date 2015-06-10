@@ -31,12 +31,40 @@
 // ES6 polyfill:
 if (!String.prototype.repeat) { String.prototype.repeat = function(n){return Array(n+1).join(this); }; }
 
+// GG roadmap:
+// 1. indicate line numbers for runtime errors when lines have no nunber (: syntax)
+//    specifying as   "... in line 60 plus 3 ':'s   // reported as :: line 60+3:
+//    STATUS :: pending
+// 2. solve issue for :: if sentido$ = "izquierda" then columna = -columna
+//    (in romboAitanaYgorka.bas -- substitute sentido=+-1 for sentido$)
+//    STATUS :: pending
+// 3. make variables work for more than 2-caracters names
+//    STATUS :: pending
+// 4. networking (a la Basic256):
+//    a. localstorage repository
+//    b. app/plugin for chromiuem for accessing the network (?)
+//    c. push to browser via node (?) --> better; no need for app/plugin
+// 5. web server for children collaboration & playing
+//    STATUS :: pending
+// 6. save / load / share / in local repository
+//    STATUS :: pending
+// 7. sublime 3 highlight for this version of basic
+//    STATUS :: pending
+
+
+
+// #PRAGMA :: TO_DO :: GG
+
+
+
 this.basic = (function() {
 
   var basic = {
     STATE_STOPPED: 0,
     STATE_RUNNING: 1,
-    STATE_BLOCKED: 2
+    STATE_BLOCKED: 2,
+    GG_FIRST_CONSTANT: 100,   // GG#RM#ALL constants for GG enhancements
+    GG_LAST_CONSTANT : 199
   };
 
   //
@@ -538,7 +566,8 @@ this.basic = (function() {
       'gosub': function GOSUB(line) {
         state.stack.push({
           gosub_return: state.stmt_index,
-          line_number: state.line_number
+          line_number: state.line_number,
+          line_offset: state.line_offset   // GG#RM#1
         });
         throw new GoToLine(line);
       },
@@ -551,7 +580,8 @@ this.basic = (function() {
         }
         state.stack.push({
           gosub_return: state.stmt_index,
-          line_number: state.line_number
+          line_number: state.line_number,
+          line_offset: state.line_offset   // GG#RM#1
         });
         throw new GoToLine(lines[index]);
       },
@@ -563,6 +593,7 @@ this.basic = (function() {
           if ({}.hasOwnProperty.call(stack_record, 'gosub_return')) {
             state.stmt_index = stack_record.gosub_return;
             state.line_number = stack_record.line_number;
+            state.line_offset = stack_record.line_offset;   // GG#RM#1
             return;
           }
         }
@@ -585,7 +616,8 @@ this.basic = (function() {
           to: to,
           step: step,
           for_next: state.stmt_index,
-          line_number: state.line_number
+          line_number: state.line_number,
+          line_offset: state.line_offset   // GG#RM#1
         });
       },
 
@@ -613,6 +645,7 @@ this.basic = (function() {
             state.stack.push(stack_record);
             state.stmt_index = stack_record.for_next;
             state.line_number = stack_record.line_number;
+            state.line_offset = stack_record.line_offset;   // GG#RM#1
             return;
           }
         } while (varnames.length);
@@ -650,6 +683,7 @@ this.basic = (function() {
           return;
         }
         state.line_number = stack_record.resume_line_number;
+        state.line_offset = stack_record.resume_line_offset;   // GG#RM#1
         state.stmt_index = stack_record.resume_stmt_index;
       },
 
@@ -1180,10 +1214,15 @@ this.basic = (function() {
       var match, test, endOfStatement, endOfProgram,
                 currLine = 0, currColumn = 0,
                 currLineNumber = 0;
+      var gg_separatorCounterSinceLastNumber = 0;     // GG#RM#1
 
       function parse_error(msg) {
-        return new basic.ParseError(msg + " in line " + currLineNumber,
-                                    currLine, currColumn);
+        //return new basic.ParseError(msg + " in line " + currLineNumber,
+        //                            currLine, currColumn);
+        // GG#RM#1 :: report also the number of non-numbered lines since the last numbered one
+        return new basic.ParseError(msg + " in line " +
+          currLineNumber + (! gg_separatorCounterSinceLastNumber ? '' : '+'+gg_separatorCounterSinceLastNumber+':'),
+          currLine, currColumn);
       }
 
 
@@ -1320,6 +1359,10 @@ this.basic = (function() {
           var token = lookahead;
           if ('lineNumber' in token) {
             currLineNumber = token.lineNumber;
+            gg_separatorCounterSinceLastNumber = 0;   // GG#RM#1
+          }
+          if ('separator' in token) {
+            ++gg_separatorCounterSinceLastNumber;     // GG#RM#1 
           }
           lookahead = nextToken();
 
@@ -1342,6 +1385,10 @@ this.basic = (function() {
               var token = lookahead;
               if ('lineNumber' in token) {
                 currLineNumber = token.lineNumber;
+                gg_separatorCounterSinceLastNumber = 0;   // GG#RM#1
+              }
+              else if ('separator' in token) {                 
+                gg_separatorCounterSinceLastNumber++;     // GG#RM#1
               }
               lookahead = nextToken();
             }
@@ -2209,6 +2256,7 @@ this.basic = (function() {
         data_index: 0,
         stmt_index: 0,
         line_number: 0,
+        gg_statements_counter_since_last_number: 0,   // GG#RM#1
         stack: [],
         prng: new PRNG(),
 
@@ -2294,10 +2342,12 @@ this.basic = (function() {
 
             if (typeof stmt === 'number') {
               state.line_number = stmt;
+              state.gg_statements_counter_since_last_number = 0;   // GG#RM#1
             } else if (typeof stmt === 'function') {
               if (state.trace_mode) {
                 env.tty.writeString('#' + state.line_number + ' ');
               }
+              state.gg_statements_counter_since_last_number++;     // GG#RM#1
               stmt();
             } else {
               throw "WTF?";
@@ -2358,7 +2408,7 @@ this.basic = (function() {
           if (state.onerr_handler !== void 0) {
             state.stack.push({
               resume_stmt_index: state.stmt_index,
-              resume_line_number: state.line_number
+              resume_line_number: state.line_number,
             });
             gotoline(state.onerr_handler);
             return basic.STATE_RUNNING;
@@ -2367,7 +2417,9 @@ this.basic = (function() {
             return basic.STATE_RUNNING;
           } else {
             // annotate and report to the user
-            rte.message += " in line " + state.line_number;
+            rte.message += " in line " + state.line_number +   // GG#RM#1
+              (! state.gg_statements_counter_since_last_number ? '' : '+'+state.gg_statements_counter_since_last_number+':');
+            // rte.message += " in line " + state.line_number;
             throw rte;
           }
         } else {
