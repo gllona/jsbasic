@@ -50,6 +50,8 @@ if (!String.prototype.repeat) { String.prototype.repeat = function(n){return Arr
 //    STATUS :: pending
 // 7. sublime 3 highlight for this version of basic
 //    STATUS :: pending
+// 8. localization for error messages
+//    STATUS :: pending
 
 
 
@@ -567,7 +569,6 @@ this.basic = (function() {
         state.stack.push({
           gosub_return: state.stmt_index,
           line_number: state.line_number,
-          line_offset: state.line_offset   // GG#RM#1
         });
         throw new GoToLine(line);
       },
@@ -581,7 +582,6 @@ this.basic = (function() {
         state.stack.push({
           gosub_return: state.stmt_index,
           line_number: state.line_number,
-          line_offset: state.line_offset   // GG#RM#1
         });
         throw new GoToLine(lines[index]);
       },
@@ -593,7 +593,6 @@ this.basic = (function() {
           if ({}.hasOwnProperty.call(stack_record, 'gosub_return')) {
             state.stmt_index = stack_record.gosub_return;
             state.line_number = stack_record.line_number;
-            state.line_offset = stack_record.line_offset;   // GG#RM#1
             return;
           }
         }
@@ -617,7 +616,6 @@ this.basic = (function() {
           step: step,
           for_next: state.stmt_index,
           line_number: state.line_number,
-          line_offset: state.line_offset   // GG#RM#1
         });
       },
 
@@ -645,7 +643,6 @@ this.basic = (function() {
             state.stack.push(stack_record);
             state.stmt_index = stack_record.for_next;
             state.line_number = stack_record.line_number;
-            state.line_offset = stack_record.line_offset;   // GG#RM#1
             return;
           }
         } while (varnames.length);
@@ -683,7 +680,6 @@ this.basic = (function() {
           return;
         }
         state.line_number = stack_record.resume_line_number;
-        state.line_offset = stack_record.resume_line_offset;   // GG#RM#1
         state.stmt_index = stack_record.resume_stmt_index;
       },
 
@@ -1214,15 +1210,14 @@ this.basic = (function() {
       var match, test, endOfStatement, endOfProgram,
                 currLine = 0, currColumn = 0,
                 currLineNumber = 0;
-      var gg_separatorCounterSinceLastNumber = 0;     // GG#RM#1
+      var gg_separatorCounterSinceLastNumber = 0;   // GG#RM#1
 
       function parse_error(msg) {
+        return new basic.ParseError(msg + " in line " +
+          currLineNumber + (! gg_separatorCounterSinceLastNumber ? '' : '+:'+gg_separatorCounterSinceLastNumber),
+          currLine, currColumn);   // GG#RM#1
         //return new basic.ParseError(msg + " in line " + currLineNumber,
         //                            currLine, currColumn);
-        // GG#RM#1 :: report also the number of non-numbered lines since the last numbered one
-        return new basic.ParseError(msg + " in line " +
-          currLineNumber + (! gg_separatorCounterSinceLastNumber ? '' : '+'+gg_separatorCounterSinceLastNumber+':'),
-          currLine, currColumn);
       }
 
 
@@ -1361,9 +1356,7 @@ this.basic = (function() {
             currLineNumber = token.lineNumber;
             gg_separatorCounterSinceLastNumber = 0;   // GG#RM#1
           }
-          if ('separator' in token) {
-            ++gg_separatorCounterSinceLastNumber;     // GG#RM#1 
-          }
+          if ('separator' in token) { ++gg_separatorCounterSinceLastNumber; }   // GG#RM#1 
           lookahead = nextToken();
 
           if (!{}.hasOwnProperty.call(token, type)) {
@@ -1387,9 +1380,7 @@ this.basic = (function() {
                 currLineNumber = token.lineNumber;
                 gg_separatorCounterSinceLastNumber = 0;   // GG#RM#1
               }
-              else if ('separator' in token) {                 
-                gg_separatorCounterSinceLastNumber++;     // GG#RM#1
-              }
+              else if ('separator' in token) { gg_separatorCounterSinceLastNumber++; }   // GG#RM#1
               lookahead = nextToken();
             }
 
@@ -2166,9 +2157,10 @@ this.basic = (function() {
           jump: []        // map of: { line-number: statement-index }
         };
 
-        function mkfun(js) {
+        function mkfun(js, gg_separator_counter_since_last_number) {   // GG#RM#1
           var fun; // NOTE: for IE; would prefer Function()
           eval('fun = (function (){' + js + '});');
+          fun.getSeparatorCounterSinceLastNumber = function(){ return gg_separator_counter_since_last_number; }   // GG#RM#1
           return fun;
         }
 
@@ -2176,14 +2168,14 @@ this.basic = (function() {
 
         // Statement = data-declaration | remark | Command | EmptyStatement
         // Command   = identifier /*...*/ | reserved /*...*/
-        function parseStatement() {
+        function parseStatement( gg_separator_counter_since_last_number ) {   // GG#RM#1
           if (test('data')) {
             program.data = program.data.concat(match('data'));
             return undefined;
           } else if (test('remark', void 0, true)) {
             return undefined;
           } else if (test('reserved') || test('identifier')) {
-            return mkfun(parseCommand());
+            return mkfun(parseCommand(), gg_separator_counter_since_last_number);   // GG#RM#1
           } else {
             // So TRACE output is correct
             return empty_statement;
@@ -2194,10 +2186,11 @@ this.basic = (function() {
         function parseLine() {
           var num = match('lineNumber');
           var statements = [];
-          var statement = parseStatement();
+          var gg_separator_counter_since_last_number = 0;                             // GG#RM#1
+          var statement = parseStatement( gg_separator_counter_since_last_number );   // GG#RM#1
           if (statement) statements.push(statement);
           while (test('separator', ':', true)) {
-            statement = parseStatement();
+            statement = parseStatement( ++gg_separator_counter_since_last_number );   // GG#RM#1
             if (statement) statements.push(statement);
           }
           insertLine(num, statements);
@@ -2256,7 +2249,6 @@ this.basic = (function() {
         data_index: 0,
         stmt_index: 0,
         line_number: 0,
-        gg_statements_counter_since_last_number: 0,   // GG#RM#1
         stack: [],
         prng: new PRNG(),
 
@@ -2342,12 +2334,10 @@ this.basic = (function() {
 
             if (typeof stmt === 'number') {
               state.line_number = stmt;
-              state.gg_statements_counter_since_last_number = 0;   // GG#RM#1
             } else if (typeof stmt === 'function') {
               if (state.trace_mode) {
                 env.tty.writeString('#' + state.line_number + ' ');
               }
-              state.gg_statements_counter_since_last_number++;     // GG#RM#1
               stmt();
             } else {
               throw "WTF?";
@@ -2417,8 +2407,9 @@ this.basic = (function() {
             return basic.STATE_RUNNING;
           } else {
             // annotate and report to the user
-            rte.message += " in line " + state.line_number +   // GG#RM#1
-              (! state.gg_statements_counter_since_last_number ? '' : '+'+state.gg_statements_counter_since_last_number+':');
+            var gg_lineNumber_suffix = stmt.getSeparatorCounterSinceLastNumber();                  // GG#RM#1
+            gg_lineNumber_suffix = gg_lineNumber_suffix == 0 ? '' : '+:' + gg_lineNumber_suffix;   // GG#RM#1
+            rte.message += " in line " + state.line_number + gg_lineNumber_suffix;                 // GG#RM#1
             // rte.message += " in line " + state.line_number;
             throw rte;
           }
