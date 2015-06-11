@@ -568,7 +568,7 @@ this.basic = (function() {
       'gosub': function GOSUB(line) {
         state.stack.push({
           gosub_return: state.stmt_index,
-          line_number: state.line_number,
+          line_number: state.line_number
         });
         throw new GoToLine(line);
       },
@@ -581,7 +581,7 @@ this.basic = (function() {
         }
         state.stack.push({
           gosub_return: state.stmt_index,
-          line_number: state.line_number,
+          line_number: state.line_number
         });
         throw new GoToLine(lines[index]);
       },
@@ -615,7 +615,7 @@ this.basic = (function() {
           to: to,
           step: step,
           for_next: state.stmt_index,
-          line_number: state.line_number,
+          line_number: state.line_number
         });
       },
 
@@ -1214,7 +1214,7 @@ this.basic = (function() {
 
       function parse_error(msg) {
         return new basic.ParseError(msg + " in line " +
-          currLineNumber + (! gg_separatorCounterSinceLastNumber ? '' : '+:'+gg_separatorCounterSinceLastNumber),
+          currLineNumber + (! gg_separatorCounterSinceLastNumber ? '' : ':'+gg_separatorCounterSinceLastNumber),
           currLine, currColumn);   // GG#RM#1
         //return new basic.ParseError(msg + " in line " + currLineNumber,
         //                            currLine, currColumn);
@@ -2408,7 +2408,7 @@ this.basic = (function() {
           } else {
             // annotate and report to the user
             var gg_lineNumber_suffix = stmt.getSeparatorCounterSinceLastNumber();                  // GG#RM#1
-            gg_lineNumber_suffix = gg_lineNumber_suffix == 0 ? '' : '+:' + gg_lineNumber_suffix;   // GG#RM#1
+            gg_lineNumber_suffix = gg_lineNumber_suffix == 0 ? '' : ':' + gg_lineNumber_suffix;   // GG#RM#1
             rte.message += " in line " + state.line_number + gg_lineNumber_suffix;                 // GG#RM#1
             // rte.message += " in line " + state.line_number;
             throw rte;
