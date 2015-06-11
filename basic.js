@@ -34,12 +34,12 @@ if (!String.prototype.repeat) { String.prototype.repeat = function(n){return Arr
 // GG roadmap:
 // 1. indicate line numbers for runtime errors when lines have no nunber (: syntax)
 //    specifying as   "... in line 60 plus 3 ':'s   // reported as :: line 60+3:
-//    STATUS :: pending
+//    STATUS :: DONE
 // 2. solve issue for :: if sentido$ = "izquierda" then columna = -columna
 //    (in romboAitanaYgorka.bas -- substitute sentido=+-1 for sentido$)
 //    STATUS :: pending
 // 3. make variables work for more than 2-caracters names
-//    STATUS :: pending
+//    STATUS :: DONE
 // 4. networking (a la Basic256):
 //    a. localstorage repository
 //    b. app/plugin for chromiuem for accessing the network (?)
@@ -55,19 +55,25 @@ if (!String.prototype.repeat) { String.prototype.repeat = function(n){return Arr
 
 
 
-// #PRAGMA :: TO_DO :: GG
-
-
-
 this.basic = (function() {
 
   var basic = {
     STATE_STOPPED: 0,
     STATE_RUNNING: 1,
     STATE_BLOCKED: 2,
-    GG_FIRST_CONSTANT: 100,   // GG#RM#ALL constants for GG enhancements
-    GG_LAST_CONSTANT : 199
+    GG_FIRST_CONSTANT             : 100,   // GG#RM#ALL constants for GG enhancements
+    GG_LONG_NAMES_FOR_IDENTIFIERS : 101,
+    GG_LAST_CONSTANT              : 199
   };
+
+
+  // 
+  // Extensions to Applesoft :: enablers/disablers
+  //
+  var gg_isEnabled = function( which ) {
+    return which && typeof basic[which] !== undefined;
+  };
+
 
   //
   // Thrown if parsing fails
@@ -1257,7 +1263,7 @@ this.basic = (function() {
         RESERVED_WORDS.reverse();
 
         var regexReservedWords = new RegExp("^(" + RESERVED_WORDS.map(munge).join("|") + ")", "i"),
-            regexIdentifier = /^([A-Za-z][A-Za-z0-9]?)[A-Za-z0-9]*(\$|%)?/,
+            regexIdentifier = gg_isEnabled(basic.GG_LONG_NAMES_FOR_IDENTIFIERS) ? /^([A-Za-z][A-Za-z0-9]*)(\$|%)?/ : /^([A-Za-z][A-Za-z0-9]?)[A-Za-z0-9]*(\$|%)?/ ,   // GG#RM#2 
             regexStringLiteral = /^"([^"]*?)(?:"|(?=\n|\r|$))/,
             regexNumberLiteral = /^[0-9]*\.?[0-9]+(?:[eE]\s*[\-+]?\s*[0-9]+)?/,
             regexHexLiteral = /^\$[0-9A-Fa-f]+/,
@@ -1326,7 +1332,7 @@ this.basic = (function() {
             token.reserved = stream.lastMatch[1].toUpperCase().replace(/\s+/g, '');
             if (token.reserved === kws.QUESTION) { token.reserved = kws.PRINT; } // HACK
           } else if (stream.match(regexIdentifier)) {
-            token.identifier = stream.lastMatch[1].toUpperCase() + (stream.lastMatch[2] || ''); // Canonicalize identifier name
+             token.identifier = stream.lastMatch[1].toUpperCase() + (stream.lastMatch[2] || ''); // Canonicalize identifier name
           } else if (stream.match(regexStringLiteral)) {
             token.string = stream.lastMatch[1];
           } else if (stream.match(regexNumberLiteral)) {
