@@ -31,28 +31,6 @@
 // ES6 polyfill:
 if (!String.prototype.repeat) { String.prototype.repeat = function(n){return Array(n+1).join(this); }; }
 
-// GG roadmap:
-// 1. indicate line numbers for runtime errors when lines have no nunber (: syntax)
-//    specifying as   "... in line 60 plus 3 ':'s   // reported as :: line 60+3:
-//    STATUS :: DONE
-// 2. solve issue for :: if sentido$ = "izquierda" then columna = -columna
-//    (in romboAitanaYgorka.bas -- substitute sentido=+-1 for sentido$)
-//    STATUS :: pending
-// 3. make variables work for more than 2-caracters names
-//    STATUS :: DONE
-// 4. networking (a la Basic256):
-//    a. localstorage repository
-//    b. app/plugin for chromiuem for accessing the network (?)
-//    c. push to browser via node (?) --> better; no need for app/plugin
-// 5. web server for children collaboration & playing
-//    STATUS :: pending
-// 6. save / load / share / in local repository
-//    STATUS :: pending
-// 7. sublime 3 highlight for this version of basic
-//    STATUS :: pending
-// 8. localization for error messages
-//    STATUS :: pending
-
 
 
 this.basic = (function() {

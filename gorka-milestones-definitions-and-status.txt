@@ -1,0 +1,69 @@
+//////////////////////
+// GORKA-MILESTONES //
+//////////////////////
+
+// WHAT IS THE PURPOSE OF THIS JSBASIC PROJECT EXTENSION ::
+// - children should learn to program in a very simply way
+// - the Scratch-language approach is difficult because there are son many UI options
+// - best basic i remember is applesoft basic so jsbasic is ideal; it's minimalist and simple
+// - parents and teachers should learn jsbasic in order to teach it to the children; jsbasic is ideal here
+// - it's difficult to children think in structured code; dataflow diagrams and spaguetti code are ok
+// - basic360 is very good but is a native app, the UI is complicated and the code editor is too simple
+// - networking is needed like in basic360 in order to allow children play and compete over the net
+// - networking is needed in the local network as well as over internet; so a meta server is needed
+// - the best platform for this language is the browser, so jsbasic did the main work (it's javascript)
+
+// PREFERRED IMPLEMENTATION ORDERING FOR MILESTONES ::
+// all     :: 1 > 3 > 2 > 6 > 9 > 4 > 5a > 8 > 5b > 7 > 5c
+// done    :: 1 > 3
+// pending :: 2 > 6 > 9 > 4 > 5a > 8 > 5b > 7 > 5c
+
+// 1. indicate line numbers for runtime errors when lines have no nunber (: syntax)
+//    specifying "error in line 60 plus 3 non-numbered lines" will be reported as "error in line 60+3:"
+//    STATUS :: DONE
+//    implementation notes:
+//    * when the line is numbered the report will be as usual :: lines 60
+
+// 2. solve issue for :: if sentido$ = "izquierda" then columna = -columna
+//    (in romboAitanaYgorka.bas -- substitute sentido=+-1 for sentido$)
+//    this is a malfunction involving IF/THEN statements
+//    STATUS :: pending
+
+// 3. make variables work for more than 2-caracters names
+//    there is a 
+//    STATUS :: DONE
+//    implementation notes:
+//    * new constant values were included inside the "basic" object for enabling/disabling
+//      the milestones results that alter the standard jsbasic semantics
+//      this approach will be used for the rest of milestones
+
+// 4. networking (a la Basic256) (best way?)
+//    a. localstorage repository
+//    b. app/plugin for chromiuem for accessing the network (?)
+//    c. push to browser via node.js (?) --> better; no need for app/plugin
+//    there will be neccesary to define new jsbasic primitives
+//    the idea is allow users to send and receive blocking and non-blocking,
+//    timed and not-timed, hubbed and not-hubbed messages (strings) in a very abstract way
+//    STATUS :: pending
+
+// 5. web server for children collaboration & playing
+//    5a. basic site (in order to enable networking over Internet - milestone 4)
+//    5b. users' management, integrated with distributed "working nodes"
+//        (ex. in schools, so teams from different schools can collaborate / compete
+/     5c. final version including a nice graphics design
+//    STATUS :: pending
+
+// 6. save in / load from / local repository (browser localstorage)
+//    STATUS :: pending
+
+// 7. sublime text editor 3 highlight for this version of basic
+//    STATUS :: pending
+
+// 8. localization for error messages
+//    STATUS :: pending
+
+// 9. JSON management
+//    encode(stringify), decode(fromString), add and delete nodes as JSON objects
+//    implementation of map-type arrays will be needed previously; keys will be strings only
+//    this will be very useful when used jointly with milestone 4 (networking)
+//    STATUS: pending

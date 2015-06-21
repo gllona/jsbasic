@@ -1,0 +1,61 @@
+=========================================
+=== TEST CASES FOR GORKA'S MILESTONES ===
+=========================================
+
+
+
+====================
+=== MILESTONE 01 ===
+====================
+
+-----------------------------------------
+--- test: unique 
+-----------------------------------------
+
+10 rem testing case for MILESTONE 01
+:  rem report detailed line number for parse and runtime errors
+:  rem (for lines without line numbers but with ":")
+:  rem lines are reported as 110:1 for example for the parse error test case
+:  rem pure numbered lines are not reported as 110:0 but simplily 110
+
+100 rem parse error
+110 print "uno"
+: prinnnnnnnnt "dos"
+: print "tres"
+
+200 rem runtime error
+201 rem comment line 110:1 
+210 for i = 20 to 1 step -1
+: rem
+: htab i - 8
+: print "testing"
+: next i
+
+300 rem done
+
+
+
+====================
+=== MILESTONE 03 ===
+====================
+
+-----------------------------------------
+--- test: unique 
+-----------------------------------------
+
+10 rem test case for MILESTONE 03
+:  rem should print "1" and "2" when the enhancement is activated; else the usual "1" and "1"
+: LET AABB = 1
+: LET AACC = 2
+: print AABB
+: print AACC
+
+
+
+====================
+=== MILESTONE XX ===
+====================
+
+-----------------------------------------
+--- test: unique 
+-----------------------------------------
